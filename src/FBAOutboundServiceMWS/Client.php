@@ -725,8 +725,6 @@ class FBAOutboundServiceMWS_Client implements FBAOutboundServiceMWS_Interface
             ]);
             curl_close($ch);
             throw new FBAOutboundServiceMWS_Exception($exProps);
-        } else {
-
         }
 
         curl_close($ch);
