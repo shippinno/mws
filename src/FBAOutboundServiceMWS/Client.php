@@ -17,12 +17,16 @@
  * Generated: Thu Oct 30 16:36:58 GMT 2014
  */
 
+use Psr\Log\LoggerAwareTrait;
+use Psr\Log\NullLogger;
+
 /**
  * FBAOutboundServiceMWS_Client is an implementation of FBAOutboundServiceMWS
  *
  */
 class FBAOutboundServiceMWS_Client implements FBAOutboundServiceMWS_Interface
 {
+    use LoggerAwareTrait;
 
     const SERVICE_VERSION = '2010-10-01';
     const MWS_CLIENT_VERSION = '2014-10-20';
@@ -426,7 +430,8 @@ class FBAOutboundServiceMWS_Client implements FBAOutboundServiceMWS_Interface
         $config,
         $applicationName,
         $applicationVersion,
-        $attributes = null
+        $attributes = null,
+        $lggger = null
     ) {
         if(version_compare(PHP_VERSION, '5.6.0', '<')) {
             iconv_set_encoding('output_encoding', 'UTF-8');
@@ -440,6 +445,8 @@ class FBAOutboundServiceMWS_Client implements FBAOutboundServiceMWS_Interface
             $this->_config = array_merge($this->_config, $config);
         }
         $this->setUserAgentHeader($applicationName, $applicationVersion, $attributes);
+
+        $this->setLogger(is_null($logger) ? new NullLogger : $logger);
     }
 
     public function setUserAgentHeader(
@@ -673,6 +680,12 @@ class FBAOutboundServiceMWS_Client implements FBAOutboundServiceMWS_Interface
             $allHeadersStr[] = $str;
         }
 
+        $this->logger->debug('FBA outbound service request.', [
+            'url' => $url['host'] . $uri,
+            'postFields' => $query,
+            'headers' => $allHeaders,
+        ]);
+
         $ch = curl_init();
         curl_setopt($ch, CURLOPT_URL, $scheme . $url['host'] . $uri);
         curl_setopt($ch, CURLOPT_PORT, $port);
@@ -690,7 +703,15 @@ class FBAOutboundServiceMWS_Client implements FBAOutboundServiceMWS_Interface
             curl_setopt($ch, CURLOPT_PROXYUSERPWD, $config['ProxyUsername'] . ':' . $config['ProxyPassword']);
         }
 
+        $this->logger->debug('', [
+            'url' => $url['host'] . $uri,
+            'postFields' => $query,
+            'headers' => $allHeaders,
+        ]);
+
         $response = curl_exec($ch);
+
+        $this->logger->debug('FBA outbound service response.', curl_getinfo($ch));
 
         if ($response === false) {
             $exProps["Message"] = curl_error($ch);

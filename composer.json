@@ -2,6 +2,7 @@
   "name": "shippinno/mws",
   "description": "Amazon Marketplace Web Service libraries",
   "minimum-stability": "dev",
+  "prefer-stable": true,
   "license": "Apache-2.0",
   "authors": [{
     "name": "Amazon.com, Inc.",
@@ -25,5 +26,8 @@
       "MWSRecommendationsSectionService": "src/",
       "MWSSubscriptionsService": "src/"
     }
+  },
+  "require": {
+    "psr/log": "^1.0"
   }
 }
