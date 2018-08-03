@@ -711,13 +711,22 @@ class FBAOutboundServiceMWS_Client implements FBAOutboundServiceMWS_Interface
 
         $response = curl_exec($ch);
 
-        $this->logger->debug('FBA outbound service response.', curl_getinfo($ch));
-
-        if ($response === false) {
+        if ($response !== false) {
+            $this->logger->debug('FBA outbound service successful response.', [
+                'info' => curl_getinfo($ch),
+                'response' => $response,
+            ]);
+        } else {
             $exProps["Message"] = curl_error($ch);
             $exProps["ErrorType"] = "HTTP";
+            $this->logger->debug('FBA outbound service error response.', [
+                'info' => curl_getinfo($ch),
+                'error' => $exProps['Message'],
+            ]);
             curl_close($ch);
             throw new FBAOutboundServiceMWS_Exception($exProps);
+        } else {
+
         }
 
         curl_close($ch);
