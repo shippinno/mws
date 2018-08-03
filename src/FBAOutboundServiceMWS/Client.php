@@ -431,7 +431,7 @@ class FBAOutboundServiceMWS_Client implements FBAOutboundServiceMWS_Interface
         $applicationName,
         $applicationVersion,
         $attributes = null,
-        $lggger = null
+        $logger = null
     ) {
         if(version_compare(PHP_VERSION, '5.6.0', '<')) {
             iconv_set_encoding('output_encoding', 'UTF-8');
