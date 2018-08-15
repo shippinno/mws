@@ -680,8 +680,8 @@ class FBAOutboundServiceMWS_Client implements FBAOutboundServiceMWS_Interface
             $allHeadersStr[] = $str;
         }
 
-        $logKey = isset($parameters['SellerFulfillmentOrderId']) ? $parameters['SellerFulfillmentOrderId'] : ''
-            .'/'. uniqid();
+        $logKey = isset($parameters['SellerFulfillmentOrderId']) ? $parameters['SellerFulfillmentOrderId'] : '';
+        $logKey .= '/'. uniqid();
         $this->logger->debug('FBA outbound service request.', [
             'logKey' => $logKey,
             'url' => $url['host'] . $uri,
