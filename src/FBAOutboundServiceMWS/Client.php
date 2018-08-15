@@ -680,7 +680,10 @@ class FBAOutboundServiceMWS_Client implements FBAOutboundServiceMWS_Interface
             $allHeadersStr[] = $str;
         }
 
+        $logKey = isset($parameters['SellerFulfillmentOrderId']) ? $parameters['SellerFulfillmentOrderId'] : ''
+            .'/'. uniqid();
         $this->logger->debug('FBA outbound service request.', [
+            'logKey' => $logKey,
             'url' => $url['host'] . $uri,
             'postFields' => $query,
             'headers' => $allHeaders,
@@ -703,16 +706,11 @@ class FBAOutboundServiceMWS_Client implements FBAOutboundServiceMWS_Interface
             curl_setopt($ch, CURLOPT_PROXYUSERPWD, $config['ProxyUsername'] . ':' . $config['ProxyPassword']);
         }
 
-        $this->logger->debug('', [
-            'url' => $url['host'] . $uri,
-            'postFields' => $query,
-            'headers' => $allHeaders,
-        ]);
-
         $response = curl_exec($ch);
 
         if ($response !== false) {
             $this->logger->debug('FBA outbound service successful response.', [
+                'logKey' => $logKey,
                 'info' => curl_getinfo($ch),
                 'response' => $response,
             ]);
@@ -720,6 +718,7 @@ class FBAOutboundServiceMWS_Client implements FBAOutboundServiceMWS_Interface
             $exProps["Message"] = curl_error($ch);
             $exProps["ErrorType"] = "HTTP";
             $this->logger->debug('FBA outbound service error response.', [
+                'logKey' => $logKey,
                 'info' => curl_getinfo($ch),
                 'error' => $exProps['Message'],
             ]);
