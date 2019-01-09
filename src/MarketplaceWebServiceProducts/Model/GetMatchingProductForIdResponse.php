@@ -215,6 +215,8 @@ class MarketplaceWebServiceProducts_Model_GetMatchingProductForIdResponse extend
      */
     public static function fromXML($xml)
     {
+        //タグにns2:があるとなぜか日本語文字列が消える？
+        $xml = str_replace('ns2:','', $xml);
         $dom = new DOMDocument();
         $dom->loadXML($xml);
         $xpath = new DOMXPath($dom);
