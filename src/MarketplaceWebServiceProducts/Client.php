@@ -17,12 +17,16 @@
  * Generated: Fri Oct 17 17:59:56 GMT 2014
  */
 
+use Psr\Log\LoggerAwareTrait;
+use Psr\Log\NullLogger;
+
 /**
  * MarketplaceWebServiceProducts_Client is an implementation of MarketplaceWebServiceProducts
  *
  */
 class MarketplaceWebServiceProducts_Client implements MarketplaceWebServiceProducts_Interface
 {
+    use LoggerAwareTrait;
 
     const SERVICE_VERSION = '2011-10-01';
     const MWS_CLIENT_VERSION = '2014-10-20';
@@ -387,7 +391,8 @@ class MarketplaceWebServiceProducts_Client implements MarketplaceWebServiceProdu
         $awsSecretAccessKey,
         $applicationName,
         $applicationVersion,
-        $config = null
+        $config = null,
+        $logger = null
     ) {
         if(version_compare(PHP_VERSION, '5.6.0', '<')) {
             iconv_set_encoding('output_encoding', 'UTF-8');
@@ -401,6 +406,8 @@ class MarketplaceWebServiceProducts_Client implements MarketplaceWebServiceProdu
             $this->_config = array_merge($this->_config, $config);
         }
         $this->setUserAgentHeader($applicationName, $applicationVersion);
+
+        $this->setLogger(is_null($logger) ? new NullLogger : $logger);
     }
 
     private function setUserAgentHeader(
@@ -634,6 +641,15 @@ class MarketplaceWebServiceProducts_Client implements MarketplaceWebServiceProdu
             $allHeadersStr[] = $str;
         }
 
+        $logKey = isset($parameters['SellerId']) ? $parameters['SellerId'] : '';
+        $logKey .= '/'. (isset($parameters['Action']) ? $parameters['Action'] : '');
+        $logKey .= '/'. rand();
+        $this->logger->debug($logKey . ' request.', [
+            'url' => $url['host'] . $uri,
+            'postFields' => $query,
+            'headers' => $allHeaders,
+        ]);
+
         $ch = curl_init();
         curl_setopt($ch, CURLOPT_URL, $scheme . $url['host'] . $uri);
         curl_setopt($ch, CURLOPT_PORT, $port);
@@ -653,9 +669,17 @@ class MarketplaceWebServiceProducts_Client implements MarketplaceWebServiceProdu
 
         $response = curl_exec($ch);
 
-        if ($response === false) {
+        if ($response !== false) {
+            $this->logger->debug($logKey . ' successful response.', [
+                'response' => $response,
+            ]);
+        } else {
             $exProps["Message"] = curl_error($ch);
             $exProps["ErrorType"] = "HTTP";
+            $this->logger->debug($logKey . ' error response.', [
+                'info' => curl_getinfo($ch),
+                'error' => $exProps['Message'],
+            ]);
             curl_close($ch);
             throw new MarketplaceWebServiceProducts_Exception($exProps);
         }

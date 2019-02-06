@@ -17,12 +17,16 @@
  * Generated: Fri Oct 17 17:54:00 GMT 2014
  */
 
+use Psr\Log\LoggerAwareTrait;
+use Psr\Log\NullLogger;
+
 /**
  * FBAInventoryServiceMWS_Client is an implementation of FBAInventoryServiceMWS
  *
  */
 class FBAInventoryServiceMWS_Client implements FBAInventoryServiceMWS_Interface
 {
+    use LoggerAwareTrait;
 
     const SERVICE_VERSION = '2010-10-01';
     const MWS_CLIENT_VERSION = '2014-10-20';
@@ -182,6 +186,7 @@ class FBAInventoryServiceMWS_Client implements FBAInventoryServiceMWS_Interface
      * @param $applicationName
      * @param $applicationVersion
      * @param null $attributes
+     * @param null $logger
      */
     public function __construct(
         $awsAccessKeyId,
@@ -189,7 +194,8 @@ class FBAInventoryServiceMWS_Client implements FBAInventoryServiceMWS_Interface
         $config,
         $applicationName,
         $applicationVersion,
-        $attributes = null
+        $attributes = null,
+        $logger = null
     ) {
         if(version_compare(PHP_VERSION, '5.6.0', '<')) {
             iconv_set_encoding('output_encoding', 'UTF-8');
@@ -204,6 +210,8 @@ class FBAInventoryServiceMWS_Client implements FBAInventoryServiceMWS_Interface
             $this->_config = array_merge($this->_config, $config);
         }
         $this->setUserAgentHeader($applicationName, $applicationVersion, $attributes);
+
+        $this->setLogger(is_null($logger) ? new NullLogger : $logger);
     }
 
     public function setUserAgentHeader(
@@ -437,6 +445,15 @@ class FBAInventoryServiceMWS_Client implements FBAInventoryServiceMWS_Interface
             $allHeadersStr[] = $str;
         }
 
+        $logKey = isset($parameters['SellerId']) ? $parameters['SellerId'] : '';
+        $logKey .= '/'. (isset($parameters['Action']) ? $parameters['Action'] : '');
+        $logKey .= '/'. rand();
+        $this->logger->debug($logKey . ' request.', [
+            'url' => $url['host'] . $uri,
+            'postFields' => $query,
+            'headers' => $allHeaders,
+        ]);
+
         $ch = curl_init();
         curl_setopt($ch, CURLOPT_URL, $scheme . $url['host'] . $uri);
         curl_setopt($ch, CURLOPT_PORT, $port);
@@ -456,9 +473,16 @@ class FBAInventoryServiceMWS_Client implements FBAInventoryServiceMWS_Interface
 
         $response = curl_exec($ch);
 
-        if ($response === false) {
+        if ($response !== false) {
+            $this->logger->debug($logKey . ' successful response.', [
+                'response' => $response,
+            ]);
+        } else {
             $exProps["Message"] = curl_error($ch);
             $exProps["ErrorType"] = "HTTP";
+            $this->logger->debug($logKey . ' error response.', [
+                'error' => $exProps['Message'],
+            ]);
             curl_close($ch);
             throw new FBAInventoryServiceMWS_Exception($exProps);
         }

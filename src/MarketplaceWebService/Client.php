@@ -15,6 +15,8 @@
  *  Generated: Thu May 07 13:07:36 PDT 2009
  *
  */
+use Psr\Log\LoggerAwareTrait;
+use Psr\Log\NullLogger;
 
 define('CONVERTED_PARAMETERS_KEY', 'PARAMETERS');
 define('CONVERTED_HEADERS_KEY', 'HEADERS');
@@ -27,6 +29,7 @@ define('CONVERTED_HEADERS_KEY', 'HEADERS');
  */
 class MarketplaceWebService_Client implements MarketplaceWebService_Interface
 {
+    use LoggerAwareTrait;
 
     /** @var string */
     private $awsAccessKeyId = null;
@@ -81,7 +84,8 @@ class MarketplaceWebService_Client implements MarketplaceWebService_Interface
         $config,
         $applicationName,
         $applicationVersion,
-        $attributes = null
+        $attributes = null,
+        $logger = null
     ) {
         if(version_compare(PHP_VERSION, '5.6.0', '<')) {
             iconv_set_encoding('output_encoding', 'UTF-8');
@@ -96,6 +100,8 @@ class MarketplaceWebService_Client implements MarketplaceWebService_Interface
         }
 
         $this->setUserAgentHeader($applicationName, $applicationVersion, $attributes);
+
+        $this->setLogger(is_null($logger) ? new NullLogger : $logger);
     }
 
     /**
@@ -881,6 +887,21 @@ class MarketplaceWebService_Client implements MarketplaceWebService_Interface
             $curlOptions[CURLOPT_RETURNTRANSFER] = true;
         }
 
+        $logKey = isset($converted['PARAMETERS']['Merchant']) ? $converted['PARAMETERS']['Merchant'] : '';
+        $logKey .= '/'. $action;
+        $logKey .= '/'. rand();
+        $xml = '';
+        if ($dataHandle) {
+            rewind($dataHandle);
+            $xml = fread($dataHandle, 2000);
+            rewind($dataHandle);
+        }
+
+        $this->logger->debug($logKey . ' request.', [
+            'url' => $curlOptions[CURLOPT_URL],
+            'xml' => $xml,
+        ]);
+
         $this->curlClient = curl_init();
         curl_setopt_array($this->curlClient, $curlOptions);
 
@@ -888,7 +909,6 @@ class MarketplaceWebService_Client implements MarketplaceWebService_Interface
         $this->errorResponseBody = @fopen('php://memory', 'rw+');
 
         $httpResponse = curl_exec($this->curlClient);
-
         rewind($this->headerContents);
         $header = stream_get_contents($this->headerContents);
 
@@ -915,6 +935,19 @@ class MarketplaceWebService_Client implements MarketplaceWebService_Interface
         @fclose($this->errorResponseBody);
         curl_close($this->curlClient);
 
+        $xml = "";
+        if ($dataHandle) {
+            rewind($dataHandle);
+            $xml = fread($dataHandle, 2000);
+            rewind($dataHandle);
+        }
+
+        $this->logger->debug($logKey . ' response.', [
+            'Status' => $code,
+            'xml' => $xml,
+            'ResponseBody' => $httpResponse,
+            'ResponseHeaderMetadata' => $responseHeaderMetadata
+        ]);
 
         return array(
             'Status' => $code,
@@ -1056,9 +1089,9 @@ class MarketplaceWebService_Client implements MarketplaceWebService_Interface
 
             $curlOptions[CURLOPT_PROXY] = $proxy;
         }
-        
+
         if (array_key_exists('CURLOPT_VERBOSE', $this->config) && !is_null($this->config['CURLOPT_VERBOSE'])) {
-        	$curlOptions[CURLOPT_VERBOSE] = $this->config['CURLOPT_VERBOSE'];
+            $curlOptions[CURLOPT_VERBOSE] = $this->config['CURLOPT_VERBOSE'];
         }
 
         $serviceUrl = $this->config['ServiceURL'];
