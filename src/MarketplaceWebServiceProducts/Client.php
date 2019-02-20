@@ -671,7 +671,7 @@ class MarketplaceWebServiceProducts_Client implements MarketplaceWebServiceProdu
 
         if ($response !== false) {
             $this->logger->debug($logKey . ' successful response.', [
-                'response' => $response,
+                'response' => str_replace(["\r","\n"], ['CR', 'LF'], $response),
             ]);
         } else {
             $exProps["Message"] = curl_error($ch);

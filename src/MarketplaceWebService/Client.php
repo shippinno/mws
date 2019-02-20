@@ -899,7 +899,7 @@ class MarketplaceWebService_Client implements MarketplaceWebService_Interface
 
         $this->logger->debug($logKey . ' request.', [
             'url' => $curlOptions[CURLOPT_URL],
-            'xml' => $xml,
+            'xml' => str_replace(["\r","\n"], ['CR', 'LF'], $xml),
         ]);
 
         $this->curlClient = curl_init();
@@ -944,7 +944,7 @@ class MarketplaceWebService_Client implements MarketplaceWebService_Interface
 
         $this->logger->debug($logKey . ' response.', [
             'Status' => $code,
-            'xml' => $xml,
+            'xml' => str_replace(["\r","\n"], ['CR', 'LF'], $xml),
             'ResponseBody' => $httpResponse,
             'ResponseHeaderMetadata' => $responseHeaderMetadata
         ]);
