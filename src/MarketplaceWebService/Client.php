@@ -945,7 +945,7 @@ class MarketplaceWebService_Client implements MarketplaceWebService_Interface
         $this->logger->debug($logKey . ' response.', [
             'Status' => $code,
             'xml' => str_replace(["\r","\n"], ['CR', 'LF'], $xml),
-            'ResponseBody' => $httpResponse,
+            'ResponseBody' => str_replace(["\r","\n"], ['CR', 'LF'], $httpResponse),
             'ResponseHeaderMetadata' => $responseHeaderMetadata
         ]);
 
