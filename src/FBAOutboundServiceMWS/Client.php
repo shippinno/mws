@@ -709,9 +709,23 @@ class FBAOutboundServiceMWS_Client implements FBAOutboundServiceMWS_Interface
         $response = curl_exec($ch);
 
         if ($response !== false) {
-            $this->logger->debug($logKey . ' successful response.', [
-                'response' => str_replace(["\r","\n"], ['CR', 'LF'], $response),
-            ]);
+            if (isset($parameters['Action']) && $parameters['Action'] === 'GetFulfillmentOrder') {
+                $header_size = curl_getinfo($ch, CURLINFO_HEADER_SIZE);
+                $body = substr($response, $header_size);
+                $xml = simplexml_load_string($body);
+                $xmlArray = json_decode(json_encode($xml), true);
+
+                $fulfillmentOrder = array_column($xmlArray, 'FulfillmentOrder');
+                $this->logger->debug($logKey . ' successful response.', [
+                    'orderId' => array_column($fulfillmentOrder, 'SellerFulfillmentOrderId'),
+                    'fulfillmentOrderItem' => array_column($xmlArray, 'FulfillmentOrderItem'),
+                    'requestId' => array_column($xmlArray, 'RequestId')
+                ]);
+            } else {
+                $this->logger->debug($logKey . ' successful response.', [
+                    'response' => str_replace(["\r", "\n"], ['CR', 'LF'], $response),
+                ]);
+            }
         } else {
             $exProps["Message"] = curl_error($ch);
             $exProps["ErrorType"] = "HTTP";
