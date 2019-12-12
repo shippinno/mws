@@ -50,6 +50,7 @@
  * <li>LatestShipDate: string</li>
  * <li>EarliestDeliveryDate: string</li>
  * <li>LatestDeliveryDate: string</li>
+ * <li>IsPrime: bool</li>
  *
  * </ul>
  */
@@ -93,6 +94,7 @@ class MarketplaceWebServiceOrders_Model_Order extends MarketplaceWebServiceOrder
             'LatestShipDate' => array('FieldValue' => null, 'FieldType' => 'string'),
             'EarliestDeliveryDate' => array('FieldValue' => null, 'FieldType' => 'string'),
             'LatestDeliveryDate' => array('FieldValue' => null, 'FieldType' => 'string'),
+            'IsPrime' => array('FieldValue' => null, 'FieldType' => 'bool'),
         );
         parent::__construct($data);
     }
@@ -1362,6 +1364,62 @@ class MarketplaceWebServiceOrders_Model_Order extends MarketplaceWebServiceOrder
     public function withLatestDeliveryDate($value)
     {
         $this->setLatestDeliveryDate($value);
+        return $this;
+    }
+
+    /**
+     * Check the value of IsPrime.
+     *
+     * @return true if IsPrime is set to true.
+     */
+    public function isIsPrime()
+    {
+        return !is_null($this->_fields['IsPrime']['FieldValue']) && $this->_fields['IsPrime']['FieldValue'];
+    }
+
+    /**
+     * Get the value of the IsPrime property.
+     *
+     * @return Boolean IsPrime.
+     */
+    public function getIsPrime()
+    {
+        return $this->_fields['IsPrime']['FieldValue'];
+    }
+
+    /**
+     * Set the value of the IsPrime property.
+     *
+     * @param bool $value isPrime
+     * @return $this This instance
+     */
+    public function setIsPrime($value)
+    {
+        $this->_fields['IsPrime']['FieldValue'] = $value;
+        return $this;
+    }
+
+    /**
+     * Check to see if IsPrime is set.
+     *
+     * @return true if IsPrime is set.
+     */
+    public function isSetIsPrime()
+    {
+        return !is_null($this->_fields['IsPrime']['FieldValue']);
+    }
+
+    /**
+     * Set the value of IsPrime, return this.
+     *
+     * @param isPrime
+     *             The new value to set.
+     *
+     * @return $this This instance.
+     */
+    public function withIsPrime($value)
+    {
+        $this->setIsPrime($value);
         return $this;
     }
 
